@@ -1,0 +1,23 @@
+{
+  "name": "ludum-dare-46",
+  "version": "1.0.0",
+  "description": "",
+  "main": "api_service.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Minifixio/ludum-dare-46.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Minifixio/ludum-dare-46/issues"
+  },
+  "homepage": "https://github.com/Minifixio/ludum-dare-46#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "sqlite3": "^4.1.1"
+  }
+}
