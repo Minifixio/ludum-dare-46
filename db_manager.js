@@ -17,8 +17,8 @@ async function lastIA() {
         const query = 'SELECT * FROM ia ORDER BY id DESC LIMIT 1'
 
         mainDb.get(query, [], (err, row) => {
-            // Si deathDate == null, la derniere IA est morte
-            if (row == null) {
+            // Si deathDate !== null, la derniere IA est morte
+            if (row == null || row.deathDate != null) {
                 resolve(null)
             } else {
                 let ia = new IA(row.birthDate, row.creator)
@@ -47,9 +47,15 @@ function resetDb() {
 
 function deathIA(deathDate) {
     const query = 'UPDATE ia SET deathDate = ? WHERE id = (SELECT MAX(id) FROM ia)'
+    mainDb.run(query, [deathDate])
+}
+
+function lowCoherence() {
+    const query = 'UPDATE ia SET coherence = coherence - 1 WHERE id = (SELECT MAX(id) FROM ia)'
     mainDb.run(query)
 }
 
+module.exports.lowCoherence = lowCoherence;
 module.exports.updateCycleLevel = updateCycleLevel;
 module.exports.resetDb = resetDb
 module.exports.deathIA = deathIA

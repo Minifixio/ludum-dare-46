@@ -1,5 +1,5 @@
 const dbManager = require('./db_manager.js')
-const INITIAL_COHERENCE = 20
+const INITIAL_COHERENCE = 5
 
 const missionsTypes = [
     'SECURITY',
@@ -30,15 +30,14 @@ class Cycle {
         this.birthDate = Date.now()
         this.missions = this.createMissions(coherence)
         this.totalMissions = this.missions.length
-        this.duration = (60 - coherence*2) * 60000
+        this.duration = 5000//(60 - coherence*2) * 60000
     }
 
     createMissions(coherence) {
         let result = []
-        let maxMissions = getRandomInt(this.level + 1) + INITIAL_COHERENCE - coherence
-        let missionsNumber = Math.random(1, maxMissions)
+        let maxMissions = getRandomInt(Math.floor(Math.random() * 3) + this.level) + INITIAL_COHERENCE - coherence
         
-        for (let i=0; i < missionsNumber; i++) {
+        for (let i=0; i < maxMissions; i++) {
             result.push(missionsTypes[getRandomInt(missionsTypes.length)])
         }
 
@@ -69,6 +68,7 @@ class GameManager {
     cycleTimer
 
     constructor() {
+        this.currentLog = []
         this.loadLastIA()
     }
     
@@ -83,14 +83,17 @@ class GameManager {
     async loadLastIA() {
         this.currentIA = await dbManager.lastIA()
         if(this.currentIA != null){
+            this.currentLog.push(makeLog('a new IA was loaded'))
             this.currentIA.cycle = new Cycle(this.currentIA.cycleLevel, this.currentIA.coherence)
         }
     }
 
     endIA() {
         this.currentIA.deathDate = Date.now()
-        this.currentLog.push('IA ' + this.currentIA.id + ' died')
+        this.currentLog.push(makeLog('IA ' + this.currentIA.id + ' died'))
         this.currentIA.die()
+        this.currentIA = null
+        clearTimeout(this.cycleTimer)
     }
 
     newCycle(level) {
@@ -105,12 +108,14 @@ class GameManager {
 
     endCycle() {
         this.currentIA.coherence--
+        dbManager.lowCoherence()
+        this.currentLog.push(makeLog('cycle ' + this.currentIA.cycle.level + ' ended'))
 
         if (this.currentIA.coherence == 0) {
             this.endIA()
+        } else {
+            this.newCycle(this.currentIA.cycle.level + 1)
         }
-
-        this.newCycle(this.currentIA.cycle.level + 1)
     }
 
     completeMission(type, iaID, cycleLevel, player) {
@@ -149,7 +154,7 @@ function makeLog(content, player) {
 }
 
 function getRandomInt(max) {
-    return Math.floor(Math.random() * Math.floor(3))
+    return Math.floor(Math.random() * Math.floor(max))
 }
 
 module.exports.GameManager = GameManager
